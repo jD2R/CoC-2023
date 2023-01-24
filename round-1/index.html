@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>New webpage</title>
+
+        <style>
+            body {
+                margin: 0;
+            }
+        </style>
+
+    </head>
+    <body>
+
+        <script src="script.js" id="PJS_code" type="data" data-height="600" data-width="600">
+            
+            smooth();
+            size(600, 600, P2D);
+
+            // jshint esnext: true
+
+            const keys = {};
+            keyPressed = function() {
+                keys[keyCode] = true;
+                keys[key.toString().toLowerCase()] = true;
+            };
+            keyReleased = function() {
+                delete keys[keyCode];
+                delete keys[key.toString.toLowerCase()];
+            };
+
+            let player = {
+                x: 300,
+                y: 300,
+                xv: 0,
+                yv: 0,
+                radius: 16,
+                
+                draw: function() {
+                    noStroke();
+                    fill(0, 0, 0);
+                    ellipse(this.x, this.y, this.radius*2, this.radius*2);
+                },
+                move: function() {
+                    if (keys[UP] || keys.w) { this.yv--; }
+                    if (keys[DOWN] || keys.s) { this.yv++; }
+                    if (keys[LEFT] || keys.a) { this.xv--; }
+                    if (keys[RIGHT] || keys.d) { this.xv++; }
+                    
+                    this.x = constrain(this.x + this.xv, this.radius, 500-this.radius);
+                    this.y = constrain(this.y + this.yv, this.radius, 500-this.radius);
+                    this.xv = constrain(this.xv * 0.8, -10, 10);
+                    this.yv = constrain(this.yv * 0.8, -10, 10);
+                },
+                update: function() {
+                    this.draw();
+                    this.move();
+                }
+            };
+
+            draw = function() {
+                background(255, 255, 255);
+                player.update();
+            };
+        </script>
+        <script src="https://cdn.jsdelivr.net/gh/vExcess/library_files@main/runPJS_onKA.js"></script>
+
+    </body>
+</html>

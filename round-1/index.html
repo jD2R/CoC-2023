@@ -20,6 +20,17 @@
 
             // jshint esnext: true
 
+            Array.prototype.loop = function(callback) {
+                for (var i = 0; i < this.length; i++) {
+                    callback.call(this, this[i]);
+                }
+            };
+            Array.prototype.reverseLoop = function(callback) {
+                for (var i = this.length; i--;) {
+                    callback.call(this, this[i]);
+                }
+            };            
+
             const keys = {};
             keyPressed = function() {
                 keys[keyCode] = true;
@@ -30,16 +41,44 @@
                 delete keys[key.toString.toLowerCase()];
             };
 
+            function circRect(c, r) {
+                const x = constrain(c.x, r.x, r.x + r.w);
+                const y = constrain(c.y, r.y, r.y + r.h);
+                if (dist(c.x, c.y, x, y) <= c.radius) {;
+                    const ang = atan2(c.x - x, c.y - y);
+                    return [x + sin(ang) * c.radius, y + cos(ang) * c.radius];
+                }
+                return 0;
+            }
+
+            const BLOCK_SIZE = 50;
+
+            let rooms = [
+                [
+                    '          ',
+                    ' 1      1 ',
+                    ' 11    11 ',
+                    '          ',
+                    '    11    ',
+                    '    11    ',
+                    '          ',
+                    ' 11    11 ',
+                    ' 1      1 ',
+                    '          ',
+                ]
+            ];
+            let blocks = [];
+
             let player = {
-                x: 300,
-                y: 300,
+                x: 250,
+                y: 400,
                 xv: 0,
                 yv: 0,
                 radius: 16,
                 
                 draw: function() {
                     noStroke();
-                    fill(0, 0, 0);
+                    fill(255, 50, 50);
                     ellipse(this.x, this.y, this.radius*2, this.radius*2);
                 },
                 move: function() {
@@ -50,19 +89,60 @@
                     
                     this.x = constrain(this.x + this.xv, this.radius, 500-this.radius);
                     this.y = constrain(this.y + this.yv, this.radius, 500-this.radius);
-                    this.xv = constrain(this.xv * 0.8, -10, 10);
-                    this.yv = constrain(this.yv * 0.8, -10, 10);
+                    this.xv = constrain(this.xv * 0.8, -2, 2);
+                    this.yv = constrain(this.yv * 0.8, -2, 2);
+                },
+                coll: function() {
+                    blocks.loop(function(block) {
+                        let collision = circRect(player, block);
+                        void(collision && ([player.x, player.y] = collision));
+                    });
                 },
                 update: function() {
                     this.draw();
                     this.move();
+                    this.coll();
                 }
             };
 
-            draw = function() {
-                background(255, 255, 255);
-                player.update();
+            function Block(x, y) {
+                this.x = x;
+                this.y = y;
+                this.w = BLOCK_SIZE;
+                this.h = BLOCK_SIZE;
+            }
+            Block.prototype.draw = function() {
+                noStroke();
+                fill(100, 100, 100);
+                rect(this.x, this.y, this.w, this.h);
             };
+            
+            // generation
+            for (let i = 0; i < rooms[0].length; i++) {
+                for (let j = 0; j < rooms[0][i].length; j++) {
+                    rooms[0][i][j] === '1' && blocks.push(new Block(i * BLOCK_SIZE, j * BLOCK_SIZE));
+                }
+            }
+
+            draw = function() {
+                _clearLogs();
+                background(240, 240, 240);
+                pushMatrix();
+                translate(50, 50);
+                    for (let i = 0; i < 10; i++) {
+                        for (let j = 0; j < 10; j++) {
+                            noFill();
+                            stroke(0, 0, 0, 5);
+                            rect(i*BLOCK_SIZE, j*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                        }
+                    }
+                    blocks.loop(function(block) {
+                        block.draw();
+                    });
+                    player.update();
+                popMatrix();
+            };
+
         </script>
         <script src="https://cdn.jsdelivr.net/gh/vExcess/library_files@main/runPJS_onKA.js"></script>
 
